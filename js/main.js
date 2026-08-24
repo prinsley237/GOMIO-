@@ -38,12 +38,6 @@
         $('.back-to-top').fadeOut('slow');
     }
     });
-    $('.back-to-top').click(function () {
-        $('html, body').animate({scrollTop: 0}, 1500, 'easeInOutExpo');
-        return false;
-    });
-
-
     // vegetable carousel
     $(".vegetable-carousel").owlCarousel({
         autoplay: true,
@@ -140,25 +134,46 @@
 
         forms.forEach(form => {
             const messageEl = form.querySelector('.form-success-message');
-            const formName = form.getAttribute('name');
-            const storageKey = formName ? `netlify-form-submitted-${formName}` : null;
+            const submitButton = form.querySelector('[type="submit"]');
 
-            if (messageEl && storageKey && localStorage.getItem(storageKey)) {
-                messageEl.textContent = 'Thanks! Your submission was received. The form is cleared.';
-                messageEl.classList.remove('d-none', 'alert-danger');
-                messageEl.classList.add('alert-success');
-                localStorage.removeItem(storageKey);
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault();
 
-                setTimeout(() => {
-                    if (messageEl) {
-                        messageEl.classList.add('d-none');
+                if (messageEl) {
+                    messageEl.classList.add('d-none');
+                    messageEl.classList.remove('alert-danger');
+                }
+                if (submitButton) {
+                    submitButton.disabled = true;
+                }
+
+                try {
+                    const response = await fetch('/', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: new URLSearchParams(new FormData(form)).toString()
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Form submission failed');
                     }
-                }, 5000);
-            }
 
-            form.addEventListener('submit', function() {
-                if (storageKey) {
-                    localStorage.setItem(storageKey, 'true');
+                    form.reset();
+                    if (messageEl) {
+                        messageEl.textContent = 'Thank you! Your submission was received. We will contact you within 24 hours.';
+                        messageEl.classList.remove('d-none', 'alert-danger');
+                        messageEl.classList.add('alert-success');
+                    }
+                } catch (error) {
+                    if (messageEl) {
+                        messageEl.textContent = 'We could not submit your form. Please try again.';
+                        messageEl.classList.remove('d-none', 'alert-success');
+                        messageEl.classList.add('alert-danger');
+                    }
+                } finally {
+                    if (submitButton) {
+                        submitButton.disabled = false;
+                    }
                 }
             });
         });
