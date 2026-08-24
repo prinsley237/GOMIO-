@@ -16,7 +16,7 @@
  .back-to-top {
     position: fixed;
     right: 30px;
-    bottom: 30px;
+    bottom: 100px;
     display: flex;
     width: 45px;
     height: 45px;
